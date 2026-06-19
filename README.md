@@ -1,6 +1,5 @@
 This is a simple containerlab representing my home setup. 
-Images were adjusted to Ububtu to keep the Container light 
-  A router & 3 host network setup with Br0 and DHCP 
+Images were adjusted to Ububtu to keep the Container light. A router & 3 host network setup with Br0 and DHCP 
     My proxmox server has a static IP which is also running this containerlab on an Ubuntu.Server VM
 
 ********
