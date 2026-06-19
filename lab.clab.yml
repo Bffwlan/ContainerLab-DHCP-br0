@@ -1,0 +1,65 @@
+name: home-sandbox
+
+topology:
+  nodes:
+
+  #router
+    Router:
+     kind: linux
+     image: alpine:latest
+     binds:
+      - Router.conf:/etc/network/interfaces
+     exec:
+      - apk update
+      - apk add dnsmasq
+      - apk add dnsmasq iproute2
+      - ip link add name br0 type bridge
+      - ip link set dev br0 up
+      - ip link set dev eth1 master br0
+      - ip link set dev eth2 master br0
+      - ip link set dev eth3 master br0
+      - ip link set dev eth1 up
+      - ip link set dev eth2 up
+      - ip link set dev eth3 up
+      - ifconfig br0 192.168.1.1 netmask 255.255.255.0 up
+      - killall dnsmasq || true
+      - dnsmasq -i br0 -F 192.168.1.50,192.168.1.150,25h
+
+
+  #proxmox-server
+    PROXMOX-SERVER:
+      kind: linux
+      image: ubuntu:latest
+      exec:
+       - apt-get update
+       - apt-get install -y iproute2
+       - ip link set dev eth1 up
+       - ip addr add 192.168.1.10/24 dev eth1
+       - ip route add default via 192.168.1.1
+
+
+  #windows-machine
+    DELL-MACHINE:
+      kind: linux
+      image: ubuntu:latest
+      exec:
+        - apt-get update
+        - apt-get install -y isc-dhcp-client
+        - ip link set dev eth1 up
+        - dhclient eth1
+
+   #ubuntu-serverOS-vm "running this project!"
+    UBUNTU-SERVEROS-VM:
+      kind: linux
+      image: ubuntu:latest
+      exec:
+       - apt-get update
+       - apt-get install -y isc-dhcp-client
+       - ip link set dev eth1 up
+       - dhclient eth1
+
+  links:
+    - endpoints: ["Router:eth1", "PROXMOX-SERVER:eth1"]
+    - endpoints: ["Router:eth2", "DELL-MACHINE:eth1"]#wireless-device
+    - endpoints: ["Router:eth3", "UBUNTU-SERVEROS-VM:eth1"]
+
